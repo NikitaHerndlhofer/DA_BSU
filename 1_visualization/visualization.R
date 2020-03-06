@@ -9,7 +9,7 @@
 # Ctrl + Enter - run selected lines (see menu Code)
 # Ctrl + L – clear console
 
-# theme Cobalt: Tools - Glbal Options - Appearance - Cobalt - Apply
+# theme Cobalt: Tools - Global Options - Appearance - Cobalt - Apply
 
 # View - Panes - Show all panes
 
@@ -33,9 +33,11 @@ library(ggplot2)
 # e.g. ggplot2::ggplot() When to use this?
 
 View(mpg)
+
 mpg
 
 str(mpg)
+
 
 mpg$model
 
@@ -47,9 +49,10 @@ unique(mpg$model)
 
 ?mpg
 
-# Creating a scatterplot
+# Creating a scatterplot (gallon = 3.8 l)
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy))
+
 
 # Check Plots pane.
 
@@ -66,10 +69,13 @@ ggplot(data = mpg) +
 # More info about save() https://ggplot2.tidyverse.org/reference/ggsave.html 
 
 getwd()
-setwd("D:/R projects/ds-courses/BSU/visualization")
+# if you work local, you can set working dir by setwd
+# e.g. seywd("D:/R projects/ds-courses/BSU/visualization")
 
-ggsave("mpg.pdf")
-ggsave("mpg.png")
+ggsave("img/mpg.pdf")
+ggsave("img/mpg.png")
+
+# use .gitignore not to commit some files or directories
 
 
 # 2. Aesthetic mappings--------------------------------------------------------
@@ -182,5 +188,5 @@ ggplot(mpg, aes(x = class, y = cty)) +
   coord_flip()
 
 
-# 5. Sum up--------------------------------------------------------------------
+# 6. Sum up--------------------------------------------------------------------
 # Let's have a look through the code and sum up what we have learned.
