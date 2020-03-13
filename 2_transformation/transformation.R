@@ -5,7 +5,10 @@ setwd("D:/R projects/ds-courses/BSU/transformation")
 
 install.packages('nycflights13')
 library(nycflights13)
+install.packages('tidyverse')
 library(dplyr)
+
+
 
 ?flights
 flights
