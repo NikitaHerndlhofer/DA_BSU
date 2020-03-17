@@ -1,9 +1,7 @@
 # Book: R for Data Science https://r4ds.had.co.nz
 # Chapter 5 
 
-setwd("D:/R projects/ds-courses/BSU/transformation")
-
-install.packages('nycflights13')
+# install.packages('nycflights13')
 library(nycflights13)
 library(dplyr)
 
@@ -69,11 +67,10 @@ arrange(flights, desc(dep_delay))
 
 # missing values are always sorted at the end
 
-
+tail(arrange(flights, desc(dep_delay)),3)
 
 # 3. Select columns with select()---------------------------------------------
 # Actual for datasets with many columns to narrowing in on the variables.
-# we'll use "flights" and "economics" to get the general idea.
 
 select(flights, year, month, day)
 

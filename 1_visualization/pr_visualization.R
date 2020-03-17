@@ -14,6 +14,10 @@
 
 economics$date
 
+# install.packages('lubridate')
+
+library(lubridate)
+
 year(economics$date)
 
 my_economics <- economics
