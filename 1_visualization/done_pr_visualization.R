@@ -59,7 +59,7 @@ year(economics$date)
 
 my_economics <- economics
 my_economics$decade <- year(economics$date) %/% 10 * 10
-#создали новую линейку данных, в которой данные сгруппированы по декадам
+#создали новый cтолбец данных декада
 
 class(my_economics$decade)
 #поняли, что decade принадлежит к классу чисел
