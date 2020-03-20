@@ -24,7 +24,7 @@ filter(economics, between(psavert,10 , 13))
 
 # Exersice 4. Which 5 rows of "economics" contain the highest unemploy values?
 # What are these 5 unemploy values and corresponding dates?
-head(arrange(economics, desc(unemploy)),5)
+select(head(arrange(economics, desc(unemploy)),5), date, unemploy)
 
 # Exersice 5. Create "my_economics" as a copy of "economics". 
 # Use mutate() to add a new column "year" (hint: see pr_visualization).

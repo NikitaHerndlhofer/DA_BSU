@@ -79,9 +79,8 @@ ggsave("img/ex4_facwt_wrap.png")
 # Exersice 6. On one plot (x = uempmed, y = unemploy) display a separate geom_smoth object for each decade.
 
 ggplot(data = my_economics) +
-  geom_smooth(mapping = aes(x = uempmed, y = unemploy)) +
-  facet_grid(~ decade)
-ggsave("img/ex6_facet_grid.png")
+  geom_smooth(mapping = aes(x = uempmed, y = unemploy, color = decade))
+ggsave("img/ex6.png")
 
 # Exersice 7. Plot histogram for unemploy for each decade.
 
@@ -92,6 +91,10 @@ ggsave("img/ex7_histogram_unemploy.png")
 ggplot(my_economics, aes(unemploy, fill = decade)) +
   geom_histogram()
 ggsave("img/ex7_histogram_unemploy.png")
+
+ggplot(my_economics, aes(unemploy)) +
+  geom_histogram()+
+  facet_wrap(~ decade)
 
 # Exersice 8. Plot geom_boxplot and stat_summary for unemploy for each decade.
 
