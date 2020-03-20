@@ -103,7 +103,7 @@ ggplot(data = my_economics) +
 # Exersice 7. Plot histogram for unemploy for each decade.
 
 ggplot(my_economics, aes(unemploy, fill = decade)) +
-  geom_histogram()
+  geom_histogram()+facet_wrap (~decade)
 
 # Exersice 8. Plot geom_boxplot and stat_summary for unemploy for each decade.
 
