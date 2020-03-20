@@ -14,6 +14,10 @@
 
 economics$date
 
+# install.packages('lubridate')
+
+library(lubridate)
+
 year(economics$date)
 
 my_economics <- economics
@@ -33,7 +37,7 @@ class(my_economics$decade)
 
 # Exersice 8. Plot geom_boxplot and stat_summary for unemploy for each decade.
 
-# Exersice 9. Set working directory and save one of the plots to it
+# Exersice 9. Save one of the plots to directory img
 
 # Exersice 10. Compose 3 questions (in Russian and English) on the topic 'visualisation' with 3-4 variants of answers only 1 of wich is correct
 
