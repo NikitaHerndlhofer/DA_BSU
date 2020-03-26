@@ -20,7 +20,7 @@
 
 # 1. First steps---------------------------------------------------------------
 
-# install.packages("ggplot2")
+install.packages("ggplot2")
 
 library(ggplot2)
 ?ggplot2
@@ -143,7 +143,7 @@ ggplot(data = mpg) +
   geom_bar(mapping = aes(x = class))
 
 # The same as previous written in a short form
-ggplot(mpg, aes(class)) + 
+ggplot(mpg, aes(displ)) + 
   geom_bar()
 
 df <- data.frame(x = rep(c(2.9, 3.1, 4.5), c(5, 10, 4)))
