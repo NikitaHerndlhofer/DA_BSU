@@ -9,8 +9,8 @@ library(h2o)
 set.seed(42)
 
 # Generate synthetic example
-x <- 10 * runif(100)
-y <- 2 * x - 5 + rnorm(100)
+x <- 10 * runif(100) 
+y <- 2 * x - 5 + rnorm(100) 
 sim <- data.frame(x, y)
 
 # Data Frame Functions
@@ -19,6 +19,8 @@ str(sim)
 summary(sim)
 
 # What runif() and rnorm() do?
+# runif() generates sample from uniform distribution
+# rnorm() - from standard normal distribution
 
 # Visualize sim
 g <- ggplot(sim) + geom_point(aes(x, y))
@@ -63,6 +65,7 @@ ggplot() +
 n <- nrow(sim)
 shuffled_sim <- sim[sample(n), ]
 
+# sim[c(4,2,1),] - What this instruction does?
 
 # Model validation-------------------------------------------------------------
 
@@ -149,7 +152,7 @@ g2
 # But this is a very real problem with every model: the model can never tell you 
 # if the behaviour is true when you start extrapolating outside the range of the data that you have seen.
 
-# Try modeling for sim1 poly with degree 3, 5, 9. Compare the results.
+# Try modeling for sim1_poly with degree 3, 5, 9. Compare the results.
 
 
 

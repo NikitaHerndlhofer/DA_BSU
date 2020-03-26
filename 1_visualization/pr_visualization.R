@@ -62,6 +62,10 @@ ggsave("img/exercise_3.png")
 
 economics$date
 
+# install.packages('lubridate')
+
+library(lubridate)
+
 year(economics$date)
 
 my_economics <- economics
@@ -108,19 +112,6 @@ ggplot(my_economics, aes(unemploy)) +
 
 # Exersice 8. Plot geom_boxplot and stat_summary for unemploy for each decade.
 
-ggplot(my_economics) +
-  stat_summary(
-    mapping = aes(x = decade, y = unemploy),
-    fun.ymin = min,
-    fun.ymax = max,
-    fun.y = median
-  )
-ggsave("img/ex8_stat_summary_unemploy.png")
-
-
-# Exersice 9. Set working directory and save one of the plots to it
-
-# Exersice 10. Compose 3 questions (in Russian and English) on the topic 'visualisation' with 3-4 variants of answers only 1 of wich is correct
 
 
 
