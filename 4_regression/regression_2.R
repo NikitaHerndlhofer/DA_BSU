@@ -5,11 +5,14 @@
 library(ggplot2)
 library(h2o)
 
-setwd("D:/R projects/ds-courses/BSU/regression")
+# setwd("D:/R projects/ds-courses/BSU/regression")
 
 # load world_bank_train.csv and world_bank_test.csv from data dir
-world_bank_train <- read.csv("data/world_bank_train.csv")
-world_bank_test <- read.csv("data/world_bank_test.csv", sep=';')
+world_bank_train <- read.csv("4_regression/data/world_bank_train.csv")
+world_bank_test <- read.csv("4_regression/data/world_bank_test.csv", sep=';')
+
+# world_bank_train (_test):
+# cgdp - GDP per Capita, urb_pop - Percentage Urban Population
 
 summary(world_bank_train)
 str(world_bank_train)
