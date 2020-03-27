@@ -30,8 +30,7 @@ select(head(arrange(economics, desc(unemploy)),5), date, unemploy)
 # Use mutate() to add a new column "year" (hint: see pr_visualization).
 # View "my_economics" to make sure the column "year" has been added
 # Compare two ways we used to create a column: this one and in pr_visualization. 
-my_economics <- economics
-mutate(my_economics,
+my_economics <- mutate(my_economics,
        year = year(economics$date)
 )
 #из pr_visualization: 
