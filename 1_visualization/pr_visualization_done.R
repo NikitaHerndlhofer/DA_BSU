@@ -106,6 +106,7 @@ ggplot(my_economics, aes(x = decade, y = unemploy)) +
   coord_flip()
 ggsave("img/ex8.png")
 
+
 ggplot(my_economics) +
   stat_summary(
     mapping = aes(x = decade, y = unemploy),
