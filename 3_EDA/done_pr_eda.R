@@ -137,4 +137,88 @@ ggplot(flights, aes(reorder(carrier, dep_delay, median, na.rm = TRUE))) +
 
 # Exersice 10. Make eda for mpg df
 
+View (mpg)
+str (mpg)
+?mpg
+
+#the distribution of displ
+
+ggplot (mpg, aes (displ))+
+  geom_histogram (binwidth = 1)
+
+ggplot (mpg, aes (displ))+
+  geom_histogram (binwidth = 1.5)
+
+ggplot (mpg, aes (displ))+
+  geom_freqpoly (binwidth = 0.5)
+
+ggplot (mpg, aes (displ))+
+  geom_freqpoly (binwidth = 1.5)
+
+#the distribution of manufacturer and model
+ggplot(mpg, aes(manufacturer)) +
+  geom_bar()
+
+mpg %>%
+  count(manufacturer)
+
+ggplot(mpg, aes(model)) +
+  geom_bar()
+
+mpg %>%
+  count(model)
+
+# How many auto in mpg df are 1.8 displ? How many are 2 displ? 
+# What do you think is the cause of the difference?
+
+displ <- mpg %>% 
+  filter(displ == 1.8) 
+count(displ)
+
+displ2 <- mpg %>% 
+  filter(displ == 2) 
+count(displ2)
+
+ggplot(mpg, aes(displ)) +
+  geom_bar()
+
+ggplot(mpg, aes(displ)) +
+  geom_boxplot()
+
+# missing values
+
+sum(is.na(mpg))
+
+# the mean time of cty according to mpg$cty
+
+mean(mpg$cty, na.rm = TRUE)
+
+
+# covariance between displ and cty 
+# covariance between manufacturer and cty
+
+ggplot (mpg, aes (displ, cty, alpha = 1/100)) +
+  geom_point()
+
+ggplot(mpg, aes (manufacturer, cty, alpha = 1/100)) +
+  geom_count()
+
+ggplot(mpg, aes(manufacturer, cty)) +
+  geom_bin2d()
+
+
+# covariance between model and hwy
+
+ggplot(mpg, aes(model, hwy)) +
+  geom_count() +
+  coord_flip()
+
+# covariance between model and cty
+
+ggplot(mpg, aes(cty, y = ..density.., colour = model)) +
+  geom_freqpoly(binwidth = 50)
+
+ggplot(mpg, aes(reorder(model, cty, median, na.rm = TRUE))) +
+  geom_boxplot() +
+  coord_cartesian() 
 
