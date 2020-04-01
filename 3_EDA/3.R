@@ -86,8 +86,9 @@ ggplot(flights_new, aes(carrier, cancelled)) +
 
 # Exersice 9. Base on flights df, discover covariance between carrier and dep_delay
 
-ggplot(flights, aes(dep_delay, color = carrier)) +
-  geom_freqpoly(binwidth = 500) 
+ggplot(data = flights, mapping = aes(x = dep_delay, y = ..density..)) + 
+  geom_freqpoly(mapping = aes(colour = carrier), binwidth = 50) 
+
 
 ggplot(flights, aes(reorder(carrier, dep_delay, median, na.rm = TRUE))) +
   geom_boxplot() 
