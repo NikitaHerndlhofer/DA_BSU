@@ -42,7 +42,7 @@ class(boston$chas)
 
 # 4) Set the predictors' column names
 
-predictors <- colnames(boston)
+predictors <- colnames(boston) [1:13]
 
 # 5) Set the response column to "medv", the median value of owner-occupied homes in $1000's
 
@@ -53,17 +53,18 @@ response <- "medv"
 localH2O = h2o.init(nthreads=-1)
 hex_boston <- as.h2o(boston)
 
-# 7) Split into train and validation sets
+# 7) Split into train and validation sets (делим в соотношении 80 на 20)
 
-boston.splits <- h2o.splitFrame(data =  hex_boston, ratios = .8, seed = 42,)
+boston.splits <- h2o.splitFrame(data =  hex_boston, ratios = .8, seed = 42)
 train <- boston.splits[[1]]
 valid <- boston.splits[[2]]
 
 ###########################################################################
-# 8) Train the model without regularization
+# 8) Train the model without regularization (борется с переобучением, когда машина изучила все шумы, но не нашла закономерность)
 
 boston_glm <- h2o.glm(x = predictors, y = response, training_frame = train, 
-                           validation_frame = valid, lambda = 0.0, seed = 42)
+                           validation_frame = valid, lambda = 0, seed = 42,
+                           compute_p_values = TRUE)
 boston_glm
 
 # 9) Inspect r2
@@ -75,6 +76,7 @@ h2o.r2(boston_glm, valid = TRUE)
 # 10) Print the coefficients table
 
 boston_glm@model$coefficients
+boston_glm@model$coefficients_table
 
 ###########################################################################
 # 11) How can we assess variable importance based on p value?
@@ -82,8 +84,19 @@ boston_glm@model$coefficients
 
 # Remove variables with p value > 0.05, build a model and compare perfomance
 
+high_p = c('chas', 'crim', 'indus', 'age')
+predictors_p = predictors[!(predictors %in% high_p)]
 
+boston_glm_p <- h2o.glm(x = predictors_p, y = response, training_frame = train, 
+                      validation_frame = valid, lambda = 0, seed = 42,
+                      compute_p_values = TRUE)
 
+h2o.r2(boston_glm_p, train = TRUE)
+# 0.74
+h2o.r2(boston_glm_p, valid = TRUE)
+# 0.68
+
+boston_glm_p@model$coefficients_table
 
 ###########################################################################
 # 12) Train the model for all variables with regularization with default hyperparameters
@@ -94,7 +107,8 @@ glm_reg_boston
 
 # 13) Check lambda & alfa values
 
-
+boston_glm@parameters$lambda
+boston_glm@parameters$alpha
 
 # 14) Inspect r2 
 
@@ -105,7 +119,7 @@ h2o.r2(glm_reg_boston, valid = TRUE)
 
 # 15) Print the coefficients table
 
-glm_reg_boston@model$coefficients
+glm_reg_boston@model$coefficients_table
 
 # !!!!! Conclusion: Does regularization affects overfitting?
 
