@@ -26,5 +26,5 @@
 # Boston dataset
 
 # 1) Build RF and GBM models (at least default) and assess their performances 
-# 2) Add obtained results to table_boston_results.pptx
+# 2) Compare obtained results with ones in table_boston_results.pptx
 
