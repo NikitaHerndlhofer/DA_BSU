@@ -51,8 +51,6 @@ boston <- read.csv("https://s3.amazonaws.com/h2o-public-test-data/smalldata/gbm_
 # 11) How can we assess variable importance based on p value?
 # Read "Influence of predictors" in "Introduction into ML with R" (available at https://github.com/k-miniukovich/DA_BSU/)
 
-# Remove variables with p value > 0.05, build a model and compare perfomance
-
 
 
 
@@ -90,9 +88,9 @@ grid <- h2o.grid(x = predictors, y = response, training_frame = train, validatio
 
 summary(grid)
 
-# Sort the grid models by mse
+# Sort the grid models by r2
 sortedGrid <- h2o.getGrid("boston_grid", sort_by = "r2", decreasing = TRUE)
-sortedGrid  # alpha = 0 gives the best r2 = 0.71
+sortedGrid  
 
 best_model <- h2o.getModel(sortedGrid@model_ids[[1]])
 best_model
@@ -122,9 +120,9 @@ boston_poly_glm <- h2o.glm(x = predictors, y = response, training_frame = train,
                            validation_frame = valid, lambda = 0, seed = 42)
 # Inspect r2 
 h2o.r2(boston_poly_glm, train = TRUE)
-# 0.92
+
 h2o.r2(boston_poly_glm, valid = TRUE)
-# 0.79
+
 
 # !!! Conclusion: Does adding polynomial features increase r2?
 
@@ -153,7 +151,7 @@ hyper_params <- list(alpha = c(0, .25, .5, .75, 1), lambda = c(1, 0.5, 0.1, 0.01
 # Check grid summary
 
 
-# Sort the grid models by mse
+# Sort the grid models by r2
 sortedGrid <- h2o.getGrid("boston_grid_poly", sort_by = "r2", decreasing = TRUE)
 sortedGrid  
 
