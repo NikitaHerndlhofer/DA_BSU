@@ -29,6 +29,8 @@ ggplot(diamonds, aes(cut)) +
 diamonds %>%
   count(cut)
 
+count (diamonds,cut)
+
 # Note - short form is used for simplicity (data, mapping are omitted)
 
 # 1.2 Continues variable - geom_histogram(), count(), geom_freqpoly()
@@ -41,6 +43,8 @@ diamonds %>%
 # <TODO> What are the min and max values of diamonds$carat? 
 # Discover min(), max() and summary()
 
+summary (diamonds$carat)
+min (diamonds$carat)
 
 # Why oservations with carat>=3 were not visualised on the above histogram?  
 
@@ -76,7 +80,7 @@ ggplot(diamonds, aes(y)) +
 
 # <TODO> How can we visualize outliers?
 
-
+# добавить  coord_cartesian(ylim = c(0,1000)) 
 
 # What three unusual values are?
 
