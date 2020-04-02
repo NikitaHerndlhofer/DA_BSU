@@ -74,6 +74,7 @@ View(my_economics)
 
 
 # Exersice 6.Use group_by() and summarise() to calculate mean number of unemployed per year in "my_economics" 
+# Exersice 7. Use pipe to get the same result as in exersice 6
 
 year_unemploy <- my_economics %>%
   group_by(year) %>%
@@ -84,6 +85,7 @@ tail(year_unemploy)
 
 # Save the result in "year_unemploy" dataset
 
-# Exersice 7. Use pipe to get the same result as in exersice 6
+
+
 
 
