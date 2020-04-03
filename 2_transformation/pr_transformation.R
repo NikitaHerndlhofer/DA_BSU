@@ -57,7 +57,7 @@ str (economics)
 
 year_unemploy <- my_economics %>%
 group_by(year) %>%
-summarise(year_unemploy = mean(unemploy, na.rm = TRUE))
+summarise(year_unemploy = mean(unemploy))
 year_unemploy
 
 #Save the result in "year_unemploy" dataset
