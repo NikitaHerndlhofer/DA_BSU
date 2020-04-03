@@ -12,11 +12,11 @@ h2o.removeAll() # Clean slate - just in case the cluster was already running
 
 
 # Set working directory
-setwd("D:/R projects/ds-courses/BSU/classification")
+# setwd("D:/R projects/ds-courses/BSU/classification")
 
 # Load data
-train <- read.csv("data/train.csv", stringsAsFactors=FALSE)
-test <- read.csv("data/test.csv", stringsAsFactors=FALSE)
+train <- read.csv("5_classification/data/train.csv", stringsAsFactors=FALSE)
+test <- read.csv("5_classification/data/test.csv", stringsAsFactors=FALSE)
 
 # Know data structure and some statistics
 str(train)
@@ -47,7 +47,7 @@ extractFeatures <- function(data) {
                "Sex",
                "Embarked",
                "Survived")
-  fea %<>% mutate_at(factors, list(as.factor))
+  fea %<>% mutate_at(factors, as.factor)
   return(fea)
 }
 
@@ -144,20 +144,22 @@ my_glm <- h2o.glm(x = myX, y = "Survived",
                family = "binomial",
                seed = 42)
 
+# Check coefficients
+my_glm@model$coefficients_table
 
 # Makes prediction
 pred_train <- as.data.frame(h2o.predict(my_glm, newdata = hex_split[[1]]))
-actual_train <- as.data.frame(hex_split[[1]])
+actual_train <- as.data.frame(hex_split[[1]]) 
 
 pred_test <- as.data.frame(h2o.predict(my_glm, newdata = hex_split[[2]]))
-actual_test <- as.data.frame(hex_split[[2]])
+actual_test <- as.data.frame(hex_split[[2]]) 
 
 # Calculates accuracies
 tbl_train <- table(actual_train$Survived, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.8196023
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.8238636
 
 tbl_test <- table(actual_test$Survived, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.8466667
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.8181818
 
 
 # Example of code to get performance metrics
@@ -168,10 +170,8 @@ tbl_test <- table(actual_test$Survived, pred_test$predict)
 
 
 # Example of code to save and load models
-# mdir <- sprintf("%s/models", getwd())
-# glmmodel.path <- h2o.saveModel(my_glm, mdir, force = TRUE)
+# glmmodel.path <- h2o.saveModel(my_glm, "5_classification/models", force = TRUE)
 # glm <- h2o.loadModel(glmmodel.path)
-
 
 
 
@@ -195,11 +195,13 @@ actual_test <- as.data.frame(hex_split[[2]])
 
 # Calculates accuracies
 tbl_train <- table(actual_train$Survived, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.9559659
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.9573864
 
 tbl_test <- table(actual_test$Survived, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.96
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.7967914
 
+# Variable importance
+h2o.varimp(my_rf)
 
 
 
@@ -223,10 +225,10 @@ actual_test <- as.data.frame(hex_split[[2]])
 
 # Calculates accuracies
 tbl_train <- table(actual_train$Survived, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.90625
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.9119318
 
 tbl_test <- table(actual_test$Survived, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.9133333
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.8502674
 
 
 
@@ -250,16 +252,16 @@ actual_test <- as.data.frame(hex_split[[2]])
 
 # Calculates accuracies
 tbl_train <- table(actual_train$Survived, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.9
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.8465909
 
 tbl_test <- table(actual_test$Survived, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.9
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) #  0.8235294
 
 
 
 
 # Automl http://docs.h2o.ai/h2o/latest-stable/h2o-docs/automl.html
-# sort_metric specifies the metric used to sort the Leaderboard by at the end of an AutoML run. 
+# sort_metric specifies the metric used to sort the Leaderboard at the end of an AutoML run. 
 # By default sort_metric = AUTO. This defaults to AUC for binary classification, 
 # mean_per_class_error for multinomial classification, and deviance for regression.
 
@@ -288,10 +290,10 @@ actual_test <- as.data.frame(hex_split[[2]])
 
 # Calculates accuracies
 tbl_train <- table(actual_train$Survived, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.85
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.9232955
 
 tbl_test <- table(actual_test$Survived, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.84
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.828877
 
 
 # Conclusion: the best model is ...
@@ -299,17 +301,13 @@ tbl_test <- table(actual_test$Survived, pred_test$predict)
 
 # Predit with the best model for hex_new ans prepare file for submition to Kaggle
 
-best_model <- my_rf
+best_model <- my_gbm
 pred <- h2o.predict(best_model, hex_new)
 res<-as.data.frame(pred$predict)
 
 solution <- data.frame(PassengerID = test$PassengerId, Survived = res$predict)
 
 # Write the solution to file
-write.csv(solution, file = 'aml_Solution.csv', row.names = F)
+write.csv(solution, file = '5_classification/data/Solution.csv', row.names = F)
 
-
-# Tasks
-# 1) Read about Grid Search http://docs.h2o.ai/h2o/latest-stable/h2o-docs/grid-search.html#grid-search-in-r
-# 2) Try Grid Search for RF and GBM algorithms
 
