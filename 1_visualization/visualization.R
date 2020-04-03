@@ -20,7 +20,7 @@
 
 # 1. First steps---------------------------------------------------------------
 
-# install.packages("ggplot2")
+install.packages("ggplot2")
 
 library(ggplot2)
 ?ggplot2
@@ -70,7 +70,7 @@ ggplot(data = mpg) +
 
 getwd()
 # if you work local, you can set working dir by setwd
-# e.g. seywd("D:/R projects/ds-courses/BSU/visualization")
+# e.g. setwd("D:/R projects/ds-courses/BSU/visualization")
 
 ggsave("img/mpg.pdf")
 ggsave("img/mpg.png")
@@ -182,6 +182,7 @@ ggplot(mpg) +
     fun.y = median
   )
 
+# Boxplot explanation: https://en.wikipedia.org/wiki/Box_plot#cite_note-4, https://towardsdatascience.com/understanding-boxplots-5e2df7bcbd51
 # geom_boxplot() & coord_flip()
 ggplot(mpg, aes(x = class, y = cty)) + 
   geom_boxplot() +
