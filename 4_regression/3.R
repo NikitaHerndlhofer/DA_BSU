@@ -112,13 +112,11 @@ glm_boston@model$coefficients_table
 # 11) How can we assess variable importance based on p value?
 # Read "Influence of predictors" in "Introduction into ML with R" (available at https://github.com/k-miniukovich/DA_BSU/)
 
-<<<<<<< HEAD
 # Remove variables with p value > 0.05, build a model and compare perfomance
 
 high_p = c('chas', 'crim', 'indus', 'age')
 predictors_p = predictors[!(predictors %in% high_p)]
 =======
->>>>>>> 3d23d4189807a4c36743d066caeeb048ce687372
 
 glm_boston_p <- h2o.glm(x = predictors_p, y = response,
                       training_frame = train,
@@ -198,11 +196,10 @@ summary(grid)
 
 # Sort the grid models by r2
 sortedGrid <- h2o.getGrid("boston_grid", sort_by = "r2", decreasing = TRUE)
-<<<<<<< HEAD
+
 sortedGrid  # alpha = 0 gives the best r2 = 0.7094759
 =======
 sortedGrid  
->>>>>>> 3d23d4189807a4c36743d066caeeb048ce687372
 
 best_model <- h2o.getModel(sortedGrid@model_ids[[1]])
 best_model
@@ -231,7 +228,6 @@ valid <- boston_poly.splits[[2]]
 glm_boston_poly <- h2o.glm(x = predictors, y = response, training_frame = train, 
                            validation_frame = valid, lambda = 0, seed = 42)
 # Inspect r2 
-<<<<<<< HEAD
 h2o.r2(glm_boston_poly, train = TRUE)
 # 0.9209627
 h2o.r2(glm_boston_poly, valid = TRUE)
@@ -240,8 +236,6 @@ h2o.r2(glm_boston_poly, valid = TRUE)
 h2o.r2(boston_poly_glm, train = TRUE)
 
 h2o.r2(boston_poly_glm, valid = TRUE)
-
->>>>>>> 3d23d4189807a4c36743d066caeeb048ce687372
 
 # !!! Conclusion: Does adding polynomial features increase r2?
 
