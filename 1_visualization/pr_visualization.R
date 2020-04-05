@@ -95,7 +95,6 @@ ggsave("img/exercise_7.png")
 
 # Exersice 8. Plot geom_boxplot and stat_summary for unemploy for each decade.
 
-<<<<<<< HEAD
 ggplot(my_economics, aes(x = decade, y = unemploy)) +
   geom_boxplot() +
   coord_flip()
@@ -113,9 +112,8 @@ ggplot(my_economics) +
 ggsave("img/exercise_8_stat_summary.png")
 
 # Exersice 9. Set working directory and save one of the plots to it
-=======
+
 # Exersice 9. Save one of the plots to directory img
->>>>>>> 983dac8aec08bf8f157e9b84d1bbe6c618d4314a
 
 # Exersice 10. Compose 3 questions (in Russian and English) on the topic 'visualisation' with 3-4 variants of answers only 1 of wich is correct
 
