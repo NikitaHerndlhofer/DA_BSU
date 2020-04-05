@@ -34,7 +34,6 @@ class(boston)
 str(boston)
 
 # Which columns shoud be factors?
-# chas and rad
 
 # Convert the chas column to a factor (chas = Charles River dummy variable (= 1 if tract bounds river; 0 otherwise))
 boston$chas <- as.factor(boston$chas)
@@ -50,21 +49,21 @@ response <- "medv"
 
 # 6) Load boston to h2o
 
-localH2O = h2o.init(nthreads=-1)
+#localH2O = h2o.init(nthreads=-1)
 hex_boston <- as.h2o(boston)
 
-# 7) Split into train and validation sets (делим в соотношении 80 на 20)
+# 7) Split into train and validation sets
 
 boston.splits <- h2o.splitFrame(data =  hex_boston, ratios = .8, seed = 42)
 train <- boston.splits[[1]]
 valid <- boston.splits[[2]]
 
 ###########################################################################
-# 8) Train the model without regularization (борется с переобучением, когда машина изучила все шумы, но не нашла закономерность)
+# 8) Train the model without regularization
 
 boston_glm <- h2o.glm(x = predictors, y = response, training_frame = train, 
-                           validation_frame = valid, lambda = 0, seed = 42,
-                           compute_p_values = TRUE)
+                     validation_frame = valid, lambda = 0, seed = 42,
+                     compute_p_values = TRUE)
 boston_glm
 
 # 9) Inspect r2
@@ -75,7 +74,6 @@ h2o.r2(boston_glm, valid = TRUE)
 
 # 10) Print the coefficients table
 
-boston_glm@model$coefficients
 boston_glm@model$coefficients_table
 
 ###########################################################################
@@ -84,12 +82,13 @@ boston_glm@model$coefficients_table
 
 # Remove variables with p value > 0.05, build a model and compare perfomance
 
+
 high_p = c('chas', 'crim', 'indus', 'age')
 predictors_p = predictors[!(predictors %in% high_p)]
 
 boston_glm_p <- h2o.glm(x = predictors_p, y = response, training_frame = train, 
-                      validation_frame = valid, lambda = 0, seed = 42,
-                      compute_p_values = TRUE)
+                        validation_frame = valid, lambda = 0, seed = 42,
+                        compute_p_values = TRUE)
 
 h2o.r2(boston_glm_p, train = TRUE)
 # 0.74
@@ -98,11 +97,13 @@ h2o.r2(boston_glm_p, valid = TRUE)
 
 boston_glm_p@model$coefficients_table
 
+
+
 ###########################################################################
 # 12) Train the model for all variables with regularization with default hyperparameters
 
 glm_reg_boston <- h2o.glm(x = predictors, y = response, training_frame = train, 
-                          validation_frame = valid, lambda = 0.0001, seed = 42)
+                          validation_frame = valid, seed = 42)
 glm_reg_boston
 
 # 13) Check lambda & alfa values
@@ -183,13 +184,18 @@ h2o.r2(boston_poly_glm, valid = TRUE)
 ###########################################################################
 # 18) Train the model for boston_poly with regularization with default hyperparameters
 
-
-# Inspect r2
-
+boston_poly_glm <- h2o.glm(x = predictors, y = response, training_frame = train, 
+                           validation_frame = valid, seed = 42)
+# Inspect r2 
+h2o.r2(boston_poly_glm, train = TRUE)
+# 0.74
+h2o.r2(boston_poly_glm, valid = TRUE)
+# 0.71
 
 # Inspect lambda and alpha
 
-
+boston_glm@parameters$lambda
+boston_glm@parameters$alpha
 
 # grid over `alpha` and 'lambda'
 hyper_params <- list(alpha = c(0, .25, .5, .75, 1), lambda = c(1, 0.5, 0.1, 0.01, 0.001))
@@ -199,22 +205,29 @@ hyper_params <- list(alpha = c(0, .25, .5, .75, 1), lambda = c(1, 0.5, 0.1, 0.01
 # random grid search instead: list(strategy = "RandomDiscrete")
 
 # build grid search with previously selected hyperparameters
-
+grid_poly <- h2o.grid(x = predictors, y = response, training_frame = train, 
+                           validation_frame = valid, algorithm = "glm", grid_id = "boston_grid_polly",
+                      hyper_params = hyper_params, seed = 42, search_criteria = list(strategy = "Cartesian"))
 
 # Check grid summary
-
+summary(grid_poly)
 
 # Sort the grid models by mse
 sortedGrid <- h2o.getGrid("boston_grid_poly", sort_by = "r2", decreasing = TRUE)
 sortedGrid  
 
 # What values of alpha and lambda gives the best r2 (for valid)?
-
+alpha = 0
 
 # Save best model to best_model variable
-
+best_model <-h2o.getModel(sortedGrid@model_ids[[1]])
+best_model
 
 # Inspect r2
 
+h2o.r2(best_model, train = TRUE)
+# 0.74
+h2o.r2(best_model, valid = TRUE)
+# 0.71
 
 # Make conclusion about the best obtained model and its' parameters
