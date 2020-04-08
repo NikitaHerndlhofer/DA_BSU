@@ -3,22 +3,14 @@
 
 # install.packages('nycflights13')
 library(nycflights13)
-install.packages('tidyverse')
 library(dplyr)
 
-
-
 ?flights
-<<<<<<< HEAD
-=======
 flights
 
 # str(), dim(), View(), summary()
 
->>>>>>> f27b28e926875e5c1dc0ab66f88ed6139a177bd6
 head(flights,3)
-
-
 tail(flights)
 
 # Type of variables
@@ -106,35 +98,25 @@ sum(is.na(flights))
 
 # 2. Arrange (order) rows with arrange()--------------------------------------
 
-arrange(flights, year, month, day)#сортировка
+arrange(flights, year, month, day)
 
-# use desc() to re-order #по убыванию
+# use desc() to re-order
 arrange(flights, desc(dep_delay))
 
 # missing values are always sorted at the end
 
-<<<<<<< HEAD
-# missing values are always sorted at the end
-
-=======
->>>>>>> f27b28e926875e5c1dc0ab66f88ed6139a177bd6
 tail(arrange(flights, desc(dep_delay)),3)
 
 # 3. Select columns with select()---------------------------------------------
 # Actual for datasets with many columns to narrowing in on the variables.
-<<<<<<< HEAD
-# we'll use "flights" and "economics" to get the general idea.
-# столбцы # filter строки
-=======
 
->>>>>>> f27b28e926875e5c1dc0ab66f88ed6139a177bd6
 select(flights, year, month, day)
 
 select(flights, year:day)
 
-select(flights, -(year:day)) # все кроме этих 3
+select(flights, -(year:day))
 
-select(flights, time_hour, air_time, everything()) # изменение порядка столбцов
+select(flights, time_hour, air_time, everything())
 
 
 # 4. Add new variables with mutate()-------------------------------------------
@@ -149,23 +131,12 @@ mutate(flights_sml,
        gain = dep_delay - arr_delay,
        speed = distance / air_time * 60
 )
-<<<<<<< HEAD
-# добавить 2 новые колонки
-# Useful creation function +, -, *, |, ^, %/% (integer division) and %% (remainder)
-=======
 
 # Useful creation function +, -, *, /, ^, %/% (integer division) and %% (remainder)
->>>>>>> f27b28e926875e5c1dc0ab66f88ed6139a177bd6
 
 # 5. Grouped summaries with summarise()----------------------------------------
 by_day <- group_by(flights, year, month, day)
 mean_delay <- summarise(by_day, delay = mean(dep_delay, na.rm = TRUE))
-mean_delay
-
-# Combining multiple operations with the pipe----------------------------------
-mean_delay <- flights %>%
-  group_by(year, month, day) %>%
-  summarise(delay = mean(dep_delay, na.rm = TRUE))
 mean_delay
 
 # Combining multiple operations with the pipe----------------------------------
