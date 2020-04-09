@@ -182,7 +182,6 @@ ggplot(mpg) +
     fun.y = median
   )
 
-# Boxplot explanation: https://en.wikipedia.org/wiki/Box_plot#cite_note-4, https://towardsdatascience.com/understanding-boxplots-5e2df7bcbd51
 # geom_boxplot() & coord_flip()
 ggplot(mpg, aes(x = class, y = cty)) + 
   geom_boxplot() +
