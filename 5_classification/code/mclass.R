@@ -8,7 +8,7 @@ h2o.removeAll() # Clean slate - just in case the cluster was already running
 
 
 # Set working directory
-# setwd("D:/R projects/ds-courses/BSU/classification")
+setwd("D:/R projects/ds-courses/BSU/classification")
 
 # Analyze Iris dataset
 str(iris)
@@ -74,6 +74,10 @@ perf_test <- h2o.performance(iris_glm, hex_split[[2]])
 h2o.mean_per_class_error(perf_test)
 
 
+# Tasks
+# 1) Make a conclusion about the quality of iris_glm.
+# 2) Build RF and GBM models and assess their paerformances
+# 3) Chose the best of 3 models for iris ds. Justify your choise
 
 
 

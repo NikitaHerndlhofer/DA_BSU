@@ -116,6 +116,7 @@ glm_boston@model$coefficients_table
 
 high_p = c('chas', 'crim', 'indus', 'age')
 predictors_p = predictors[!(predictors %in% high_p)]
+=======
 
 glm_boston_p <- h2o.glm(x = predictors_p, y = response,
                       training_frame = train,
@@ -193,9 +194,12 @@ grid <- h2o.grid(x = predictors, y = response, training_frame = train, validatio
 
 summary(grid)
 
-# Sort the grid models by mse
+# Sort the grid models by r2
 sortedGrid <- h2o.getGrid("boston_grid", sort_by = "r2", decreasing = TRUE)
+
 sortedGrid  # alpha = 0 gives the best r2 = 0.7094759
+=======
+sortedGrid  
 
 best_model <- h2o.getModel(sortedGrid@model_ids[[1]])
 best_model
@@ -228,6 +232,10 @@ h2o.r2(glm_boston_poly, train = TRUE)
 # 0.9209627
 h2o.r2(glm_boston_poly, valid = TRUE)
 # 0.7940367
+=======
+h2o.r2(boston_poly_glm, train = TRUE)
+
+h2o.r2(boston_poly_glm, valid = TRUE)
 
 # !!! Conclusion: Does adding polynomial features increase r2?
 
@@ -271,7 +279,7 @@ grid_poly <- h2o.grid(x = predictors, y = response, training_frame = train, vali
 
 summary(grid_poly)
 
-# Sort the grid models by mse
+# Sort the grid models by r2
 sortedGrid <- h2o.getGrid("boston_grid_poly", sort_by = "r2", decreasing = TRUE)
 sortedGrid  
 
