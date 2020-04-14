@@ -3,10 +3,7 @@
 
 # install.packages('nycflights13')
 library(nycflights13)
-install.packages('tidyverse')
 library(dplyr)
-
-
 
 ?flights
 flights
