@@ -41,7 +41,7 @@ class(boston$chas)
 
 # 4) Set the predictors' column names
 
-predictors <- colnames(boston) [1:13]
+predictors <- colnames(boston)[1:13]
 
 # 5) Set the response column to "medv", the median value of owner-occupied homes in $1000's
 
@@ -108,8 +108,8 @@ glm_reg_boston
 
 # 13) Check lambda & alfa values
 
-boston_glm@parameters$lambda
-boston_glm@parameters$alpha
+glm_reg_boston@parameters$lambda #0.01
+glm_reg_boston@parameters$alpha #0.5
 
 # 14) Inspect r2 
 
@@ -153,6 +153,7 @@ best_model
 
 ###########################################################################
 # 17) Try polynomial features of degree 2 for all predictors except chas (factor)
+detach("package:MASS", unload = TRUE)
 dat <- select(boston, -c(chas, medv))
 boston_poly <- as.data.frame(do.call(poly, c(lapply(1:length(dat), function(x) dat[,x]), degree=2, raw=T)))
 boston_poly$chas <- boston$chas
@@ -188,14 +189,14 @@ boston_poly_glm <- h2o.glm(x = predictors, y = response, training_frame = train,
                            validation_frame = valid, seed = 42)
 # Inspect r2 
 h2o.r2(boston_poly_glm, train = TRUE)
-# 0.74
-h2o.r2(boston_poly_glm, valid = TRUE)
 # 0.71
+h2o.r2(boston_poly_glm, valid = TRUE)
+# 0.68
 
 # Inspect lambda and alpha
 
-boston_glm@parameters$lambda
-boston_glm@parameters$alpha
+boston_poly_glm@parameters$lambda #1.4
+boston_poly_glm@parameters$alpha #0.5
 
 # grid over `alpha` and 'lambda'
 hyper_params <- list(alpha = c(0, .25, .5, .75, 1), lambda = c(1, 0.5, 0.1, 0.01, 0.001))
@@ -206,7 +207,7 @@ hyper_params <- list(alpha = c(0, .25, .5, .75, 1), lambda = c(1, 0.5, 0.1, 0.01
 
 # build grid search with previously selected hyperparameters
 grid_poly <- h2o.grid(x = predictors, y = response, training_frame = train, 
-                           validation_frame = valid, algorithm = "glm", grid_id = "boston_grid_polly",
+                           validation_frame = valid, algorithm = "glm", grid_id = "boston_grid_poly",
                       hyper_params = hyper_params, seed = 42, search_criteria = list(strategy = "Cartesian"))
 
 # Check grid summary
@@ -226,8 +227,8 @@ best_model
 # Inspect r2
 
 h2o.r2(best_model, train = TRUE)
-# 0.74
+# 0.88
 h2o.r2(best_model, valid = TRUE)
-# 0.71
+# 0.86
 
 # Make conclusion about the best obtained model and its' parameters
