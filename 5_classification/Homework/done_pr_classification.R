@@ -6,7 +6,7 @@ setwd("/cloud/project/5_classification")
 # 1) Make submition of titanic modeling to Kaggle
 
 # score: 0.75598
-# place in leaderboard: 155...
+# place in leaderboard: 155....
 
 # 2) Try XGBoost (default hyperparameters)
 
