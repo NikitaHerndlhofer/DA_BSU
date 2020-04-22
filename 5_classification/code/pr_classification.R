@@ -1,5 +1,6 @@
 # Titanic dataset (classification_titanic_part1.R)
 
+
 # 1) Make submition of titanic modeling to Kaggle
 # 2) Try XGBoost (default hyperparameters)
 # 3) Try Stacked Ensemble with GLM, RF, GBM and XGBoost

@@ -29,8 +29,10 @@
 
 
 # Exersice 6.Use group_by() and summarise() to calculate mean number of unemployed per year in "my_economics" 
+
 # Save the result in "year_unemploy" dataset
 
-# Exersice 7. Use pipe to get the same result as in exersice 6
+
+
 
 
