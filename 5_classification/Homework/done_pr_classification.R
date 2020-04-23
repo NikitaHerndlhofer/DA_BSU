@@ -82,14 +82,16 @@ rf_grid <- h2o.grid("randomForest", x = myX,
 summary(rf_grid)
 
 sortedGrid <- h2o.getGrid(grid_id = "rf_grid",
-                           sort_by = "r2",
+                           sort_by = "auc",
                            decreasing = TRUE)
 print(sortedGrid)
 
 best_model <- h2o.getModel(sortedGrid@model_ids[[1]])
 best_model
 
-h2o.r2(best_model) # 0.4291686
+summary(best_model)
+
+best_model@allparameters
 
 gbm_params <- list(learn_rate = c(0.01, 0.1),
                   max_depth = c(3, 5, 9),
@@ -209,7 +211,7 @@ tbl_test <- table(actual_test$Species, pred_test$predict)
 (accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.9310345
 
 # 3) Chose the best of 3 models for iris, justify your chose
-
+# лучше iris_glm, так как метрика на тесте лучше
 
 # Boston dataset
 
