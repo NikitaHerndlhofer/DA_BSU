@@ -157,7 +157,7 @@ localH2O = h2o.init(nthreads=-1)
 
 adult <- as.data.frame(adult)
 
-hex_adult <- as.h2o(adult)
+hex_adult <- as.h2o(adult) # не загружает в h2o
 
 ## Splits data into 2 parts
 
