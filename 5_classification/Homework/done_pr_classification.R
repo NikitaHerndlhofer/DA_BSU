@@ -65,59 +65,56 @@ tbl_test <- table(actual_test$Survived, pred_test$predict)
 # http://docs.h2o.ai/h2o/latest-stable/h2o-docs/grid-search.html#grid-search-in-r
  
 library(jsonlite)
+library(magrittr)
+library(h2o)
+library(dplyr)
 
-rf_params <- list(max_depth = c(3, 5, 9),
-                  sample_rate = c(0.8, 1.0))
+# set grid hyperparameters 
+hyper_params <- list(ntrees = c(50, 75, 100),
+                     max_depth = c(3,5,7),
+                     learn_rate = c(0.05, 0.1, 0.2),
+                     sample_rate = c(0.8, 1.0),
+                     col_sample_rate = c(0.7, 1))
 
-rf_grid <- h2o.grid("randomForest", x = myX,
-                    y = "Survived",
-                    grid_id = "rf_grid",
-                    training_frame = hex_split[[1]],
-                    nfolds = nfolds,
-                    ntrees = 50,
-                    hyper_params = rf_params,
-                    seed = 42,
-                    search_criteria = list(strategy = "RandomDiscrete"))
+# Default: ntrees=50, max_depth=5, learn_rate=0.1, col_sample_rate=1
 
-summary(rf_grid)
+# Example below uses cartesian grid search because the search space is small
+# and we want to see the performance of all models. For a larger search space use
+# random grid search instead: list(strategy = "RandomDiscrete")
 
-sortedGrid <- h2o.getGrid(grid_id = "rf_grid",
-                           sort_by = "auc",
-                           decreasing = TRUE)
-print(sortedGrid)
+# Train and validate a cartesian grid of GBMs
 
-best_model <- h2o.getModel(sortedGrid@model_ids[[1]])
-best_model
+gbm_grid <- h2o.grid("gbm",
+                      x = myX,
+                      y = "Survived",
+                      training_frame = hex_split[[1]],
+                      validation_frame = hex_split[[2]],
+                      grid_id = "gbm_grid",
+                      hyper_params = hyper_params,
+                      seed = 42)
 
-summary(best_model)
-
-best_model@allparameters
-
-gbm_params <- list(learn_rate = c(0.01, 0.1),
-                  max_depth = c(3, 5, 9),
-                  sample_rate = c(0.8, 1.0),
-                  col_sample_rate = c(0.2, 0.5, 1.0))
-
-gbm_grid <- h2o.grid("gbm", x = myX,
-                    y = "Survived",
-                    grid_id = "gbm_grid",
-                    training_frame = hex_split[[1]],
-                    nfolds = nfolds,
-                    hyper_params = rf_params,
-                    seed = 42,
-                    search_criteria = list(strategy = "RandomDiscrete"))
-
+# Check grid summary
 summary(gbm_grid)
 
-sortedGrid1 <- h2o.getGrid(grid_id = "gbm_grid",
-                          sort_by = "r2",
-                          decreasing = TRUE)
-print(sortedGrid)
+# Get the grid results, sorted by validation accuracy
+sortedGrid <- h2o.getGrid("gbm_grid", sort_by = "accuracy", decreasing = TRUE)
+sortedGrid  
 
-best_model1 <- h2o.getModel(sortedGrid1@model_ids[[1]])
-best_model1
+# Save best model to best_model variable
+best_model <- h2o.getModel(sortedGrid@model_ids[[1]])
+best_model@allparameters
 
-h2o.r2(best_model1) # 0.5545361
+# Makes prediction
+pred_train <- as.data.frame(h2o.predict(best_model, newdata = hex_split[[1]]))
+pred_test <- as.data.frame(h2o.predict(best_model, newdata = hex_split[[2]]))
+
+
+# Calculates accuracies
+tbl_train <- table(actual_train$Survived, pred_train$predict)
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.85
+tbl_test <- table(actual_test$Survived, pred_test$predict)
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) #  0.87
+
 
 # Extra task on Titanic dataset - classification_titanic_part2.R continuation (not obligatory)
 
