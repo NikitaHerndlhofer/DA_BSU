@@ -74,15 +74,16 @@ View(auto)
 
 # the distribution of price.binned
 
-ggplot(auto, aes(price.binned)) +
+ggplot(auto, aes(price.binned)) + 
   geom_bar(fill = "LawnGreen", col="MediumVioletRed")
+ggsave("img/price_binnen.png")
 
 auto %>%
   count(price.binned)
 
-
 ggplot(data = auto) + 
-  geom_point(mapping = aes(x = engine.size, y = price))
+  geom_point(mapping = aes(x = engine.size, y = price, color = engine.type))
+ggsave("img/engine.size vs price.png")
 
 ggplot(data = auto) + 
   geom_point(mapping = aes(x = city.mpg, y = price, color = fuel.system))
@@ -98,8 +99,8 @@ ggplot(data = auto) +
   facet_wrap(~ body.style)
 
 ggplot(data = auto) + 
-  geom_point(mapping = aes(x = horsepower, y = price)) +
-  geom_smooth(mapping = aes(x = horsepower, y = price))
+  geom_point(mapping = aes(x = engine.size, y = price)) +
+  geom_smooth(mapping = aes(x = engine.size, y = price))
 
 ggplot(data = auto) + 
   geom_bar(mapping = aes(x = horsepower))
