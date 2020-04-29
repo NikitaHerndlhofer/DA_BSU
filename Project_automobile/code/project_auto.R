@@ -1,8 +1,12 @@
 install.packages("lubridate")
 library("lubridate")
-library("ggplot2")
+library("ggplot2") # visualization
+library(gridExtra) # visualization
+library(scales) # visualization
+library(dplyr) # data manipulation
+library(mice) # imputation
+library(magrittr)
 library(h2o)
-library(dplyr)
 h2o.init()
 
 # https://www.geeksforgeeks.org/analyzing-selling-price-of-used-cars-using-python/
@@ -19,8 +23,6 @@ View(auto)
 # For each variable see meaning, type and values. 
 str (auto)
 summary(auto)
-
-View(auto)
 
 auto$symboling<-as.factor(auto$symboling)
 auto$normalized.losses<-as.numeric(levels(auto$normalized.losses))[auto$normalized.losses]
@@ -163,7 +165,146 @@ h2o.r2(glm_reg_auto, train = TRUE)
 h2o.r2(glm_reg_auto, valid = TRUE)
 # 0.8897386
 
-# Print the coefficients table
+# ОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКА
+# Print the coefficients table 
 
 glm_reg_auto@model$coefficients_table
+
+# select the values for `alpha` to grid over
+hyper_params <- list( alpha = c(0, .25, .5, .75) )
+
+# this example uses cartesian grid search because the search space is small
+# and we want to see the performance of all models. For a larger search space use
+# random grid search instead: {'strategy': "RandomDiscrete"}
+
+# build grid search with previously selected hyperparameters
+grid <- h2o.grid(x = predictors, y = response, training_frame = train, validation_frame = valid,
+                 algorithm = "glm", grid_id = "auto_grid", hyper_params = hyper_params, seed = 42,
+                 search_criteria = list(strategy = "Cartesian"))
+
+summary(grid)
+
+# Sort the grid models by mse
+sortedGrid <- h2o.getGrid("auto_grid", sort_by = "r2", decreasing = TRUE)
+sortedGrid  
+
+best_model <- h2o.getModel(sortedGrid@model_ids[[1]])
+best_model
+
+# ОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКА
+
+# 17) Polynomial features of degree 2 for all predictors except symboling, make, fuel.type, aspiration, num.of.doors, 
+# body.style, drive.wheels, engine.location, engine.type, num.of.cylinders, fuel.system (factors)
+
+# detach("package:MASS", unload = TRUE)
+
+dat <- select(auto, -c(symboling, make, fuel.type, aspiration, num.of.doors, body.style, drive.wheels,
+                         engine.location, engine.type, num.of.cylinders, fuel.system, price))
+View(dat)
+
+auto_poly <- as.data.frame(do.call(poly, c(lapply(1:length(dat), function(x) dat[,x]), degree=2, raw=T)))
+auto_poly$make<- auto$make
+auto_poly$symboling <- auto$symboling
+auto_poly$fuel.type <- auto$fuel.type
+auto_poly$aspiration <- auto$aspiration
+auto_poly$num.of.doors <- auto$num.of.doors
+auto_poly$body.style <- auto$body.style
+auto_poly$drive.wheels <- auto$drive.wheels
+auto_poly$engine.location <- auto$engine.location
+auto_poly$engine.type <- auto$engine.type
+auto_poly$num.of.cylinders <- auto$num.of.cylinders
+auto_poly$fuel.system <- auto$fuel.system
+auto_poly$price <- auto$price
+
+# ОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКА
+
+# classification
+
+extractFeatures <- function(data) {
+  features <- c("symboling",
+                "normalized.losses",
+                "make",
+                "fuel.type",
+                "aspiration",
+                "num.of.doors",
+                "body.style",
+                "drive.wheels",
+                "engine.location",
+                "wheel.base",
+                "length",
+                "width",
+                "height",
+                "curb.weight",
+                "engine.type",
+                "engine.syze",
+                "num.of.cylinders",
+                "fuel.system",
+                "bore",
+                "stroke", 
+                "compression.ratio",
+                "horsepower",
+                "peak.rpm",
+                "city.mpg",
+                "highway.mpg",
+                "price")
+  fea <- data[,features]
+  factors <- c("symboling",
+               "make",
+               "fuel.type",
+               "aspiration",
+               "num.of.doors",
+               "body.style",
+               "drive.wheels",
+               "engine.location",
+               "engine.type",
+               "num.of.cylinders",
+               "fuel.system")
+  fea %<>% mutate_at(factors, list(as.factor))
+  return(fea)
+}
+
+# Feature selection
+auto <- extractFeatures(auto)
+
+# Splits data into 2 parts
+hex_split <- h2o.splitFrame(hex_auto, ratios = c(0.8), 
+                            destination_frames = c("train", "test"), seed = 42)
+
+nfolds <- 5
+
+myX <- colnames(train[1:25])
+
+# Train & Cross-validate a GLM
+my_glm <- h2o.glm(x = myX, y = "price",
+                  training_frame = hex_split[[1]],
+                  model_id = "my_glm",
+                  nfolds = nfolds, 
+                  keep_cross_validation_predictions = TRUE, # need for ensemble
+                  family = "binomial",
+                  seed = 42)
+
+
+# Makes prediction
+pred_train <- as.data.frame(h2o.predict(my_glm, newdata = hex_split[[1]]))
+actual_train <- as.data.frame(hex_split[[1]])
+
+pred_test <- as.data.frame(h2o.predict(my_glm, newdata = hex_split[[2]]))
+actual_test <- as.data.frame(hex_split[[2]])
+
+# Calculates accuracies
+tbl_train <- table(actual_train$Survived, pred_train$predict)
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.8196023
+
+tbl_test <- table(actual_test$Survived, pred_test$predict)
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.8466667
+
+
+
+
+
+
+
+
+
+
 
