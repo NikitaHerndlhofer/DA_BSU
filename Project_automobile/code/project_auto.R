@@ -1,5 +1,7 @@
 install.packages("lubridate")
+install.packages("pracma")
 library("lubridate")
+library(pracma)
 library("ggplot2") # visualization
 library(gridExtra) # visualization
 library(scales) # visualization
@@ -51,7 +53,33 @@ auto$stroke[is.na(auto$stroke)]=mean(auto$stroke,na.rm=TRUE)
 
 View(auto)
 
-# visualize dependance between variables
+# visualization
+
+# Normalizing values
+auto$length = auto$length / max(auto$length)
+auto$width = auto$width / max(auto$width) 
+auto$height = auto$height / max(auto$height)
+
+# binning- grouping values 
+bins = linspace(min(auto$price), max(auto$price), 4)  
+group_names = c("Low", "Medium", "High") 
+auto$price.binned <- cut(auto$price, bins,  
+                              labels = group_names,  
+                              include_lowest = True) 
+
+(y <- as.data.frame(lapply(auto, function(x) sum(is.na(x)))))
+auto<-auto[complete.cases(auto$price.binned),]
+
+View(auto)
+
+# the distribution of price.binned
+
+ggplot(auto, aes(price.binned)) +
+  geom_bar(fill = "LawnGreen", col="MediumVioletRed")
+
+auto %>%
+  count(price.binned)
+
 
 ggplot(data = auto) + 
   geom_point(mapping = aes(x = engine.size, y = price))
@@ -86,13 +114,7 @@ ggplot(auto, aes(x = drive.wheels, y = price)) +
 ggplot(auto, aes(price)) + 
   geom_histogram()
 
-# the distribution of aspiration
 
-ggplot(auto, aes(aspiration)) +
-  geom_bar()
-
-auto %>%
-  count(aspiration)
 
 # regression model
 
@@ -220,35 +242,35 @@ auto_poly$price <- auto$price
 
 # classification
 
-extractFeatures <- function(data) {
-  features <- c("normalized.losses",
-                "fuel.type",
-                "aspiration",
-                "engine.location",
-                "wheel.base",
-                "length",
-                "width",
-                "height",
-                "curb.weight",
-                "engine.size",
-                "bore",
-                "stroke", 
-                "compression.ratio",
-                "horsepower",
-                "peak.rpm",
-                "city.mpg",
-                "highway.mpg",
-                "price")
-  fea <- data[,features]
-  factors <- c("fuel.type",
-               "aspiration",
-               "engine.location")
-  fea %<>% mutate_at(factors, list(as.factor))
-  return(fea)
-}
+# extractFeatures <- function(data) {
+#  features <- c("normalized.losses",
+#               "fuel.type",
+#                "aspiration",
+#                "engine.location",
+#                "wheel.base",
+#                "length",
+#                "width",
+#                "height",
+#                "curb.weight",
+#                "engine.size",
+#                "bore",
+#                "stroke", 
+#                "compression.ratio",
+#                "horsepower",
+#                "peak.rpm",
+#                "city.mpg",
+#                "highway.mpg",
+#                "price")
+#  fea <- data[,features]
+#  factors <- c("fuel.type",
+#               "aspiration",
+#               "engine.location")
+#  fea %<>% mutate_at(factors, list(as.factor))
+#  return(fea)
+# }
 
 # Feature selection
-auto <- extractFeatures(auto)
+# auto <- extractFeatures(auto)
 
 hex_auto <- as.h2o(auto)
 
