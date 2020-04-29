@@ -35,6 +35,8 @@ class(boston$chas)
 
 predictors <- colnames(boston) [1:13]
 View(boston)
+View(predictors)
+
 
 # 5) Set the response column to "medv", the median value of owner-occupied homes in $1000's
 
@@ -76,11 +78,13 @@ boston_glm@model$coefficients_table
 # Read "Influence of predictors" in "Introduction into ML with R" (available at https://github.com/k-miniukovich/DA_BSU/)
 # Remove variables with p value > 0.05, build a model and compare perfomance
 high_p = c('chas', 'crim', 'indus', 'age')
-predictors_p = predictors[!(predictors %in% high_p)]
+predictors_p = predictors[!(predictors %in% high_p)] 
+View(predictors_p) #удаление колонок с незначимыми переменными
 
 boston_glm_p <- h2o.glm(x = predictors_p, y = response, training_frame = train, 
                         validation_frame = valid, lambda = 0, seed = 42,
                         compute_p_values = TRUE)
+
 
 h2o.r2(boston_glm_p, train = TRUE)
 # 0.74
@@ -93,25 +97,25 @@ boston_glm_p@model$coefficients_table
 ###########################################################################
 # 12) Train the model for all variables with regularization with default hyperparameters
 
-glm_reg_boston <- h2o.glm(x = predictors, y = response, training_frame = train, 
+boston_glm <- h2o.glm(x = predictors, y = response, training_frame = train, 
                           validation_frame = valid, seed = 42)
 
 
 # 13) Check lambda & alfa values
 
-boston_glm@parameters$lambda # 0.0
+boston_glm@parameters$lambda # 0.01339978
 boston_glm@parameters$alpha # 0.5
 
 # 14) Inspect r2 
 
-h2o.r2(glm_reg_boston, train = TRUE)
+h2o.r2(boston_glm, train = TRUE)
 # 0.74
-h2o.r2(glm_reg_boston, valid = TRUE)
+h2o.r2(boston_glm, valid = TRUE)
 # 0.71
 
 # 15) Print the coefficients table
 
-glm_reg_boston@model$coefficients_table
+boston_glm@model$coefficients_table
 # !!!!! Conclusion: Does regularization affects overfitting?
 
 
@@ -144,7 +148,9 @@ best_model
 ###########################################################################
 # 17) Try polynomial features of degree 2 for all predictors except chas (factor)
 dat <- select(boston, -c(chas, medv))
+#detach("package:MASS, unload=TRUE) if the previous row gives mistake
 boston_poly <- as.data.frame(do.call(poly, c(lapply(1:length(dat), function(x) dat[,x]), degree=2, raw=T)))
+#90 vars in boston_poly:12 vars from dat+12 squares+66 mutual products (11+10+9+...+1)=90
 boston_poly$chas <- boston$chas
 boston_poly$medv <- boston$medv
 
@@ -163,9 +169,9 @@ valid <- boston_poly.splits[[2]]
 boston_poly_glm <- h2o.glm(x = predictors, y = response, training_frame = train, 
                            validation_frame = valid, lambda = 0, seed = 42)
 # Inspect r2 
-h2o.r2(boston_poly_glm, train = TRUE)
+h2o.r2(boston_poly_glm, train = TRUE) #0.9209627
 
-h2o.r2(boston_poly_glm, valid = TRUE)
+h2o.r2(boston_poly_glm, valid = TRUE) #0.7940367
 
 # !!! Conclusion: Does adding polynomial features increase r2?
 
@@ -178,14 +184,14 @@ boston_poly_glm <- h2o.glm(x = predictors, y = response, training_frame = train,
 
 # Inspect r2
 h2o.r2(boston_poly_glm, train = TRUE)
-# 0.74
+# 0.7009533
 h2o.r2(boston_poly_glm, valid = TRUE)
-# 0.71
+# 0.6671481
 
 # Inspect lambda and alpha
 
-boston_glm@parameters$lambda # 0.0
-boston_glm@parameters$alpha  # 0.5
+boston_poly_glm@parameters$lambda # 1.363193
+boston_poly_glm@parameters$alpha  # 0.5
 
 # grid over `alpha` and 'lambda'
 hyper_params <- list(alpha = c(0, .25, .5, .75, 1), lambda = c(1, 0.5, 0.1, 0.01, 0.001))
@@ -220,8 +226,8 @@ best_model
 # Inspect r2
 
 h2o.r2(best_model, train = TRUE)
-# 0.74
+# 0.8805289
 h2o.r2(best_model, valid = TRUE)
-# 0.71
+# 0.8565232
 
 # Make conclusion about the best obtained model and its' parameters
