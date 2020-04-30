@@ -13,9 +13,6 @@ library(magrittr)
 library(h2o)
 h2o.init()
 
-# https://www.geeksforgeeks.org/analyzing-selling-price-of-used-cars-using-python/
-# https://rstudio-pubs-static.s3.amazonaws.com/345340_a8ed48c5ed094a94a4d60242a8c94a24.html
-
 # Import the automobile dataset:
 # This dataset looks at various characteristics of an auto, insurance risk rating, and predicts prices of cars
 # The original dataset can be found at https://archive.ics.uci.edu/ml/datasets/automobile
