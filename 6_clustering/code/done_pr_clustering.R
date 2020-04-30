@@ -116,12 +116,17 @@ table(run_km_sc$cluster, memb_complete)
 # Load the data
 crime_data <- read.csv("6_clustering/data/crime_data.csv", stringsAsFactors=FALSE)
 
+Str(crime_data)
+View(crime_data)
+
 # Scale the dataset: crime_data_sc
 crime_data_sc <- as.data.frame(scale(crime_data))
 
 
 # Perform k-means clustering: crime_km
 crime_km <- kmeans(crime_data_sc, 5, nstart = 20)
+g <- ggplot() +  geom_point(data = crime_data_sc, aes(x = rape, y = murder), colour = crime_km$cluster) + ylab("murder") + xlab("rape") 
+g
 
 # Perform single-linkage hierarchical clustering
 ## Calculate the distance matrix: dist_matrix
