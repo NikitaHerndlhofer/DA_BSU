@@ -1,7 +1,9 @@
 install.packages("lubridate")
 install.packages("pracma")
+install.packages("corrplot")
 library("lubridate")
 library(pracma)
+library(corrplot)
 library("ggplot2") # visualization
 library(gridExtra) # visualization
 library(scales) # visualization
@@ -76,61 +78,75 @@ View(auto)
 
 ggplot(auto, aes(price.binned)) + 
   geom_bar(fill = "LawnGreen", col="MediumVioletRed")
-ggsave("img/price_binnen.png")
+ggsave("/cloud/project/Project_automobile/img/price_binnen.png")
 
 auto %>%
   count(price.binned)
 
+# the distribution of price
+
+ggplot(auto, aes(price)) + 
+  geom_histogram(col = "white", fill = "plum")
+ggsave("/cloud/project/Project_automobile/img/distribution_of_price.png")
+
 ggplot(data = auto) + 
   geom_point(mapping = aes(x = engine.size, y = price, color = engine.type))
-ggsave("img/engine.size vs price.png")
-
-# pivot method 
-data_pivot = data_grp.pivot(index = 'drive-wheels', 
-                            columns = 'body-style') 
-data_pivot
-
-# heatmap
-plot.pcolor(data_pivot, cmap ='RdBu') 
-plt.colorbar() 
-plt.show() 
-
-ggplot(data = auto) + 
-  geom_point(mapping = aes(x = city.mpg, y = price, color = fuel.system))
-
-ggplot(data = auto) + 
-  geom_point(mapping = aes(x = wheel.base, y = price, alpha = compression.ratio))
-
-ggplot(data = auto) + 
-  geom_point(mapping = aes(x = horsepower, y = price, shape = body.style))
-
-ggplot(data = auto) + 
-  geom_point(mapping = aes(x = horsepower, y = price)) + 
-  facet_wrap(~ body.style)
+ggsave("/cloud/project/Project_automobile/img/engine.size vs price.png")
 
 ggplot(data = auto) + 
   geom_point(mapping = aes(x = engine.size, y = price)) +
   geom_smooth(mapping = aes(x = engine.size, y = price))
+ggsave("/cloud/project/Project_automobile/img/engine.size vs price + smooth.png")
 
 ggplot(data = auto) + 
-  geom_bar(mapping = aes(x = horsepower))
+  geom_point(mapping = aes(x = curb.weight, y = highway.mpg, shape = drive.wheels)) +
+  geom_smooth(mapping = aes(x = curb.weight, y = highway.mpg))
+ggsave("/cloud/project/Project_automobile/img/weight vs highway.mpg.png")
 
-ggplot(auto, aes(x = drive.wheels, y = price)) + 
+ggplot(data = auto) + 
+  geom_point(mapping = aes(x = horsepower, y = price),col="mediumorchid2") + 
+  facet_wrap(~ body.style)
+ggsave("/cloud/project/Project_automobile/img/horsepower.png")
+
+ggplot(auto, aes(x = drive.wheels, y = price, col = "seashell")) + 
   geom_boxplot() +
   coord_flip()
+ggsave("/cloud/project/Project_automobile/img/boxplot.png")
 
+ggplot(auto, aes(x = aspiration, y = city.mpg, col = "thistle")) + 
+  geom_boxplot() +
+  coord_flip()
+ggsave("/cloud/project/Project_automobile/img/boxplot2.png")
 
-# the distribution of price
+ggplot(auto, aes(x = normalized.losses, y = make, xlab="Manufacturing Company",ylab="Normalized losses",
+       main="Plot between normalized losses and manufacturing company")) + 
+  geom_boxplot() +
+  coord_flip()
+ggsave("/cloud/project/Project_automobile/img/boxplot3.png")
 
-ggplot(auto, aes(price)) + 
-  geom_histogram()
+plot(auto$normalized.losses~auto$make,xlab="Manufacturing Company",ylab="Normalized losses",
+     main="Plot between normalized losses and manufacturing company", 
+     col.lab="blue",col.main="darkblue")
+ggsave("/cloud/project/Project_automobile/img/norm.losses.png")
 
+# correlation matrix
+a <- cor(auto[,c(2,10,11,12,13,14,17,19,20,21,22,23,24,25,26)])
+a
+corrplot(corr=a, tl.pos='lt', method = "pie")
+
+# pivot method 
+pivot <- auto %>% select(drive.wheels, body.style, price) %>%
+  group_by(drive.wheels, body.style) %>%
+  summarize(Meanprice = mean(price))
+pivot
+
+# heatmap
+heatmap <- ggplot(pivot, aes(drive.wheels, body.style)) +
+  geom_tile(aes(fill = Meanprice), color = "white")
+heatmap
 
 
 # regression model
-
-# model<-lm(price~.,data=auto)
-# summary(model)
 
 predictors <- colnames(auto)[1:25]
 
@@ -149,14 +165,16 @@ valid <- auto.splits[[2]]
 auto_glm <- h2o.glm(x = predictors, y = response, training_frame = train,
                     remove_collinear_columns = TRUE,
                     validation_frame = valid, lambda = 0, seed = 42,
-                    compute_p_values = TRUE)
+                    keep_cross_validation_predictions = TRUE,
+                    compute_p_values = TRUE,
+                    model_id = "auto_glm")
 auto_glm
 
 # Inspect r2
 h2o.r2(auto_glm, train = TRUE)
-# 0.9721814
+# 0.9683812
 h2o.r2(auto_glm, valid = TRUE)
-# 0.9064784
+# 0.9381841
 
 # Print the coefficients table
 
@@ -173,9 +191,9 @@ auto_glm_p <- h2o.glm(x = predictors_p, y = response, training_frame = train,
                         compute_p_values = TRUE)
 
 h2o.r2(auto_glm_p, train = TRUE)
-# 0.9704175
+# 0.9654552
 h2o.r2(auto_glm_p, valid = TRUE)
-# 0.8858182
+# 0.9280346
 
 auto_glm_p@model$coefficients_table
 
@@ -188,7 +206,7 @@ glm_reg_auto
 
 # Check lambda & alfa values
 
-glm_reg_auto@parameters$lambda # 1243.597
+glm_reg_auto@parameters$lambda # 1240.878
 glm_reg_auto@parameters$alpha # 0.5
 
 # Inspect r2 
@@ -198,94 +216,10 @@ h2o.r2(glm_reg_auto, train = TRUE)
 h2o.r2(glm_reg_auto, valid = TRUE)
 # 0.8897386
 
-# ОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКА
-# Print the coefficients table 
-
-glm_reg_auto@model$coefficients_table
-
-# select the values for `alpha` to grid over
-hyper_params <- list( alpha = c(0, .25, .5, .75) )
-
-# this example uses cartesian grid search because the search space is small
-# and we want to see the performance of all models. For a larger search space use
-# random grid search instead: {'strategy': "RandomDiscrete"}
-
-# build grid search with previously selected hyperparameters
-grid <- h2o.grid(x = predictors, y = response, training_frame = train, validation_frame = valid,
-                 algorithm = "glm", grid_id = "auto_grid", hyper_params = hyper_params, seed = 42,
-                 search_criteria = list(strategy = "Cartesian"))
-
-summary(grid)
-
-# Sort the grid models by mse
-sortedGrid <- h2o.getGrid("auto_grid", sort_by = "r2", decreasing = TRUE)
-sortedGrid  
-
-best_model <- h2o.getModel(sortedGrid@model_ids[[1]])
-best_model
-
-# ОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКА
-
-# 17) Polynomial features of degree 2 for all predictors except symboling, make, fuel.type, aspiration, num.of.doors, 
-# body.style, drive.wheels, engine.location, engine.type, num.of.cylinders, fuel.system (factors)
-
-# detach("package:MASS", unload = TRUE)
-
-dat <- select(auto, -c(symboling, make, fuel.type, aspiration, num.of.doors, body.style, drive.wheels,
-                         engine.location, engine.type, num.of.cylinders, fuel.system, price))
-View(dat)
-
-auto_poly <- as.data.frame(do.call(poly, c(lapply(1:length(dat), function(x) dat[,x]), degree=2, raw=T)))
-auto_poly$make<- auto$make
-auto_poly$symboling <- auto$symboling
-auto_poly$fuel.type <- auto$fuel.type
-auto_poly$aspiration <- auto$aspiration
-auto_poly$num.of.doors <- auto$num.of.doors
-auto_poly$body.style <- auto$body.style
-auto_poly$drive.wheels <- auto$drive.wheels
-auto_poly$engine.location <- auto$engine.location
-auto_poly$engine.type <- auto$engine.type
-auto_poly$num.of.cylinders <- auto$num.of.cylinders
-auto_poly$fuel.system <- auto$fuel.system
-auto_poly$price <- auto$price
-
-# ОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКАОШИБКА
-
-# classification
-
-# extractFeatures <- function(data) {
-#  features <- c("normalized.losses",
-#               "fuel.type",
-#                "aspiration",
-#                "engine.location",
-#                "wheel.base",
-#                "length",
-#                "width",
-#                "height",
-#                "curb.weight",
-#                "engine.size",
-#                "bore",
-#                "stroke", 
-#                "compression.ratio",
-#                "horsepower",
-#                "peak.rpm",
-#                "city.mpg",
-#                "highway.mpg",
-#                "price")
-#  fea <- data[,features]
-#  factors <- c("fuel.type",
-#               "aspiration",
-#               "engine.location")
-#  fea %<>% mutate_at(factors, list(as.factor))
-#  return(fea)
-# }
-
-# Feature selection
-# auto <- extractFeatures(auto)
-
-
-
 # Train & Cross-validate a RF
+
+nfolds <- 5
+
 my_rf <- h2o.randomForest(x = myX,
                           y = "price",
                           training_frame = train,
@@ -307,6 +241,7 @@ h2o.r2(my_rf, valid = TRUE)
 my_gbm <- h2o.gbm(x = myX,
                   y = "price",
                   training_frame = train,
+                  validation_frame = valid,
                   model_id = "my_gbm",
                   nfolds = nfolds,
                   keep_cross_validation_predictions = TRUE, # need for ensemble
@@ -314,59 +249,43 @@ my_gbm <- h2o.gbm(x = myX,
 
 # Inspect r2
 h2o.r2(my_gbm, train = TRUE)
-# 0.9181694
+# 0.9792869
 h2o.r2(my_gbm, valid = TRUE)
-# 0.9447359
+# 0.9551777
 
 # XGBoost (default hyperparameters)
 
 my_xgboost <- h2o.xgboost(x = myX, y = "price",
                           training_frame = train,
+                          validation_frame = valid,
                           model_id = "my_xgboost",
                           nfolds = nfolds,
                           keep_cross_validation_predictions = TRUE, # need for ensemble
                           seed = 42)
 
-
-# Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_xgboost, newdata = hex_split[[1]]))
-actual_train <- as.data.frame(hex_split[[1]])
-
-pred_test <- as.data.frame(h2o.predict(my_xgboost, newdata = hex_split[[2]]))
-actual_test <- as.data.frame(hex_split[[2]])
-
-# Calculates accuracies
-tbl_train <- table(actual_train$price.binned, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 1
-
-tbl_test <- table(actual_test$price.binned, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.9473684
-
+# Inspect r2
+h2o.r2(my_xgboost, train = TRUE)
+# 0.9988554
+h2o.r2(my_xgboost, valid = TRUE)
+# 0.9221731
 
 # Stacked Ensemble with GLM, RF, GBM and XGBoost
 
 my_ensemble <- h2o.stackedEnsemble(x = myX,
-                                   y = "price.binned",
+                                   y = "price",
                                    training_frame = train,
-                                   model_id = "my_ensemble",
+                                   validation_frame = valid,
+                                   model_id = "my_e",
                                    seed = 42,
-                                   base_models = list("my_gbm", "my_rf", "my_glm", "my_xgboost"))
+                                   base_models = list("my_gbm", "my_rf", "my_xgboost"))
 
+# Inspect r2
+h2o.r2(my_xgboost, train = TRUE)
+# 0.9988554
+h2o.r2(my_xgboost, valid = TRUE)
+# 0.9221731
 
-# Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_ensemble, newdata = hex_split[[1]]))
-actual_train <- as.data.frame(hex_split[[1]])
-
-pred_test <- as.data.frame(h2o.predict(my_ensemble, newdata = hex_split[[2]]))
-actual_test <- as.data.frame(hex_split[[2]])
-
-# Calculates accuracies
-tbl_train <- table(actual_train$price.binned, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0
-
-tbl_test <- table(actual_test$price.binned, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0
-
+# classification
 
 hex_auto <- as.h2o(auto)
 
@@ -377,6 +296,7 @@ hex_split <- h2o.splitFrame(hex_auto, ratios = c(0.8),
 nfolds <- 5
 
 myX <- colnames(train[1:25])
+
 # Train & Cross-validate a GLM
 my_glm <- h2o.glm(x = myX, y = "price.binned",
                   training_frame = hex_split[[1]],
@@ -401,21 +321,20 @@ tbl_test <- table(actual_test$price.binned, pred_test$predict)
 (accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.8947368
 
 # Train & Cross-validate a RF
-my_rf <- h2o.randomForest(x = myX,
+my_rf1 <- h2o.randomForest(x = myX,
                           y = "price.binned",
                           training_frame = train,
-                          model_id = "my_rf",
+                          model_id = "my_rf1",
                           ntrees = 50,
                           nfolds = nfolds,
                           keep_cross_validation_predictions = TRUE, # need for ensemble
                           seed = 42)
 
-
 # Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_rf, newdata = hex_split[[1]]))
+pred_train <- as.data.frame(h2o.predict(my_rf1, newdata = hex_split[[1]]))
 actual_train <- as.data.frame(hex_split[[1]])
 
-pred_test <- as.data.frame(h2o.predict(my_rf, newdata = hex_split[[2]]))
+pred_test <- as.data.frame(h2o.predict(my_rf1, newdata = hex_split[[2]]))
 actual_test <- as.data.frame(hex_split[[2]])
 
 # Calculates accuracies
@@ -426,19 +345,19 @@ tbl_test <- table(actual_test$price.binned, pred_test$predict)
 (accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.9473684
 
 # Train & Cross-validate a GBM
-my_gbm <- h2o.gbm(x = myX,
+my_gbm1 <- h2o.gbm(x = myX,
                   y = "price.binned",
                   training_frame = train,
-                  model_id = "my_gbm",
+                  model_id = "my_gbm1",
                   nfolds = nfolds,
                   keep_cross_validation_predictions = TRUE, # need for ensemble
                   seed = 42)
 
 # Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_gbm, newdata = hex_split[[1]]))
+pred_train <- as.data.frame(h2o.predict(my_gbm1, newdata = hex_split[[1]]))
 actual_train <- as.data.frame(hex_split[[1]])
 
-pred_test <- as.data.frame(h2o.predict(my_gbm, newdata = hex_split[[2]]))
+pred_test <- as.data.frame(h2o.predict(my_gbm1, newdata = hex_split[[2]]))
 actual_test <- as.data.frame(hex_split[[2]])
 
 # Calculates accuracies
@@ -450,19 +369,19 @@ tbl_test <- table(actual_test$price.binned, pred_test$predict)
 
 # XGBoost (default hyperparameters)
 
-my_xgboost <- h2o.xgboost(x = myX, y = "price",
+my_xgboost1 <- h2o.xgboost(x = myX, y = "price.binned",
                           training_frame = train,
-                          model_id = "my_xgboost",
+                          model_id = "my_xgboost1",
                           nfolds = nfolds,
                           keep_cross_validation_predictions = TRUE, # need for ensemble
                           seed = 42)
 
 
 # Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_xgboost, newdata = hex_split[[1]]))
+pred_train <- as.data.frame(h2o.predict(my_xgboost1, newdata = hex_split[[1]]))
 actual_train <- as.data.frame(hex_split[[1]])
 
-pred_test <- as.data.frame(h2o.predict(my_xgboost, newdata = hex_split[[2]]))
+pred_test <- as.data.frame(h2o.predict(my_xgboost1, newdata = hex_split[[2]]))
 actual_test <- as.data.frame(hex_split[[2]])
 
 # Calculates accuracies
@@ -475,19 +394,19 @@ tbl_test <- table(actual_test$price.binned, pred_test$predict)
 
 # Stacked Ensemble with GLM, RF, GBM and XGBoost
 
-my_ensemble <- h2o.stackedEnsemble(x = myX,
+my_ensemble1 <- h2o.stackedEnsemble(x = myX,
                                     y = "price.binned",
                                     training_frame = train,
-                                    model_id = "my_ensemble",
+                                    model_id = "my_ensemble11",
                                     seed = 42,
-                                    base_models = list("my_gbm", "my_rf", "my_glm", "my_xgboost"))
+                                    base_models = list("my_gbm1", "my_rf1", "my_glm", "my_xgboost1"))
 
 
 # Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_ensemble, newdata = hex_split[[1]]))
+pred_train <- as.data.frame(h2o.predict(my_ensemble1, newdata = hex_split[[1]]))
 actual_train <- as.data.frame(hex_split[[1]])
 
-pred_test <- as.data.frame(h2o.predict(my_ensemble, newdata = hex_split[[2]]))
+pred_test <- as.data.frame(h2o.predict(my_ensemble1, newdata = hex_split[[2]]))
 actual_test <- as.data.frame(hex_split[[2]])
 
 # Calculates accuracies
@@ -496,9 +415,3 @@ tbl_train <- table(actual_train$price.binned, pred_train$predict)
 
 tbl_test <- table(actual_test$price.binned, pred_test$predict)
 (accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0
-
-
-
-
-
-
