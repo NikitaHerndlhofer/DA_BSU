@@ -1,7 +1,9 @@
 install.packages("lubridate")
 install.packages("pracma")
+install.packages("corrplot")
 library("lubridate")
 library(pracma)
+library(corrplot)
 library("ggplot2") # visualization
 library(gridExtra) # visualization
 library(scales) # visualization
@@ -76,14 +78,45 @@ View(auto)
 
 ggplot(auto, aes(price.binned)) + 
   geom_bar(fill = "LawnGreen", col="MediumVioletRed")
-ggsave("img/price_binnen.png")
+ggsave("/cloud/project/Project_automobile/img/price_binnen.png")
 
 auto %>%
   count(price.binned)
 
 ggplot(data = auto) + 
   geom_point(mapping = aes(x = engine.size, y = price, color = engine.type))
-ggsave("img/engine.size vs price.png")
+ggsave("/cloud/project/Project_automobile/img/engine.size vs price.png")
+
+ggplot(data = auto) + 
+  geom_point(mapping = aes(x = engine.size, y = price)) +
+  geom_smooth(mapping = aes(x = engine.size, y = price))
+ggsave("/cloud/project/Project_automobile/img/engine.size vs price + smooth.png")
+
+ggplot(data = auto) + 
+  geom_point(mapping = aes(x = curb.weight, y = highway.mpg, shape = drive.wheels)) +
+  geom_smooth(mapping = aes(x = curb.weight, y = highway.mpg))
+ggsave("/cloud/project/Project_automobile/img/weight vs highway.mpg.png")
+
+ggplot(data = auto) + 
+  geom_point(mapping = aes(x = horsepower, y = price),col="mediumorchid2") + 
+  facet_wrap(~ body.style)
+ggsave("/cloud/project/Project_automobile/img/horsepower.png")
+
+# correlation matrix
+a <- cor(auto[,c(2,10,11,12,13,14,17,19,20,21,22,23,24,25,26)])
+a
+corrplot(corr=a, tl.pos='lt', method = "pie")
+
+# pivot method 
+pivot <- auto %>% select(drive.wheels, body.style, price) %>%
+  group_by(drive.wheels, body.style) %>%
+  summarize(Meanprice = mean(price))
+pivot
+
+# heatmap
+heatmap <- ggplot(pivot, aes(drive.wheels, body.style)) +
+  geom_tile(aes(fill = Meanprice), color = "white")
+heatmap
 
 ggplot(data = auto) + 
   geom_point(mapping = aes(x = city.mpg, y = price, color = fuel.system))
@@ -94,13 +127,7 @@ ggplot(data = auto) +
 ggplot(data = auto) + 
   geom_point(mapping = aes(x = horsepower, y = price, shape = body.style))
 
-ggplot(data = auto) + 
-  geom_point(mapping = aes(x = horsepower, y = price)) + 
-  facet_wrap(~ body.style)
 
-ggplot(data = auto) + 
-  geom_point(mapping = aes(x = engine.size, y = price)) +
-  geom_smooth(mapping = aes(x = engine.size, y = price))
 
 ggplot(data = auto) + 
   geom_bar(mapping = aes(x = horsepower))
@@ -273,44 +300,13 @@ auto_poly$price <- auto$price
 # Feature selection
 # auto <- extractFeatures(auto)
 
-hex_auto <- as.h2o(auto)
-
-# Splits data into 2 parts
-auto.splits <- h2o.splitFrame(data =  hex_auto, ratios = .8, seed = 42)
-train <- auto.splits[[1]]
-test <- auto.splits[[2]]
-
-nfolds <- 5
-
-myX <- colnames(train[1:25])
-
-# Train & Cross-validate a GLM
-my_glm <- h2o.glm(x = myX, y = "price",
-                  training_frame = train,
-                  model_id = "my_glm",
-                  nfolds = nfolds, 
-                  keep_cross_validation_predictions = TRUE, # need for ensemble
-                  seed = 42)
-
-# Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_glm, newdata = train))
-actual_train <- as.data.frame(train)
-
-pred_test <- as.data.frame(h2o.predict(my_glm, newdata = test))
-actual_test <- as.data.frame(test)
-
-# Calculates accuracies
-tbl_train <- table(actual_train$price, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.01851852
-
-tbl_test <- table(actual_test$price, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.2051282
 
 
 # Train & Cross-validate a RF
 my_rf <- h2o.randomForest(x = myX,
                           y = "price",
                           training_frame = train,
+                          validation_frame = valid,
                           model_id = "my_rf",
                           ntrees = 50,
                           nfolds = nfolds,
@@ -318,19 +314,11 @@ my_rf <- h2o.randomForest(x = myX,
                           seed = 42)
 
 
-# Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_rf, newdata = train))
-actual_train <- as.data.frame(train)
-
-pred_test <- as.data.frame(h2o.predict(my_rf, newdata = test))
-actual_test <- as.data.frame(test)
-
-# Calculates accuracies
-tbl_train <- table(actual_train$price, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.117284
-
-tbl_test <- table(actual_test$price, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.3076923
+# Inspect r2
+h2o.r2(my_rf, train = TRUE)
+# 0.9181694
+h2o.r2(my_rf, valid = TRUE)
+# 0.9447359
 
 # Train & Cross-validate a GBM
 my_gbm <- h2o.gbm(x = myX,
@@ -341,19 +329,11 @@ my_gbm <- h2o.gbm(x = myX,
                   keep_cross_validation_predictions = TRUE, # need for ensemble
                   seed = 42)
 
-# Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_gbm, newdata = train))
-actual_train <- as.data.frame(train)
-
-pred_test <- as.data.frame(h2o.predict(my_gbm, newdata = test))
-actual_test <- as.data.frame(test)
-
-# Calculates accuracies
-tbl_train <- table(actual_train$price, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.04320988
-
-tbl_test <- table(actual_test$price, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.3076923
+# Inspect r2
+h2o.r2(my_gbm, train = TRUE)
+# 0.9181694
+h2o.r2(my_gbm, valid = TRUE)
+# 0.9447359
 
 # XGBoost (default hyperparameters)
 
@@ -366,24 +346,154 @@ my_xgboost <- h2o.xgboost(x = myX, y = "price",
 
 
 # Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_xgboost, newdata = train))
-actual_train <- as.data.frame(train)
+pred_train <- as.data.frame(h2o.predict(my_xgboost, newdata = hex_split[[1]]))
+actual_train <- as.data.frame(hex_split[[1]])
 
-pred_test <- as.data.frame(h2o.predict(my_xgboost, newdata = test))
-actual_test <- as.data.frame(test)
+pred_test <- as.data.frame(h2o.predict(my_xgboost, newdata = hex_split[[2]]))
+actual_test <- as.data.frame(hex_split[[2]])
 
 # Calculates accuracies
-tbl_train <- table(actual_train$price, pred_train$price)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.04320988
+tbl_train <- table(actual_train$price.binned, pred_train$predict)
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 1
 
-tbl_test <- table(actual_test$price, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.2820513
+tbl_test <- table(actual_test$price.binned, pred_test$predict)
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.9473684
 
 
 # Stacked Ensemble with GLM, RF, GBM and XGBoost
 
 my_ensemble <- h2o.stackedEnsemble(x = myX,
-                                    y = "price",
+                                   y = "price.binned",
+                                   training_frame = train,
+                                   model_id = "my_ensemble",
+                                   seed = 42,
+                                   base_models = list("my_gbm", "my_rf", "my_glm", "my_xgboost"))
+
+
+# Makes prediction
+pred_train <- as.data.frame(h2o.predict(my_ensemble, newdata = hex_split[[1]]))
+actual_train <- as.data.frame(hex_split[[1]])
+
+pred_test <- as.data.frame(h2o.predict(my_ensemble, newdata = hex_split[[2]]))
+actual_test <- as.data.frame(hex_split[[2]])
+
+# Calculates accuracies
+tbl_train <- table(actual_train$price.binned, pred_train$predict)
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0
+
+tbl_test <- table(actual_test$price.binned, pred_test$predict)
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0
+
+
+hex_auto <- as.h2o(auto)
+
+# Splits data into 2 parts
+hex_split <- h2o.splitFrame(hex_auto, ratios = c(0.8), 
+                            destination_frames = c("train", "test"), seed = 42)
+
+nfolds <- 5
+
+myX <- colnames(train[1:25])
+# Train & Cross-validate a GLM
+my_glm <- h2o.glm(x = myX, y = "price.binned",
+                  training_frame = hex_split[[1]],
+                  model_id = "my_glm",
+                  nfolds = nfolds,
+                  keep_cross_validation_predictions = TRUE, # need for ensemble
+                  family = "multinomial",
+                  seed = 42)
+
+# Makes prediction
+pred_train <- as.data.frame(h2o.predict(my_glm, newdata = hex_split[[1]]))
+actual_train <- as.data.frame(hex_split[[1]])
+
+pred_test <- as.data.frame(h2o.predict(my_glm, newdata = hex_split[[2]]))
+actual_test <- as.data.frame(hex_split[[2]])
+
+# Calculates accuracies
+tbl_train <- table(actual_train$price.binned, pred_train$predict)
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.9012346
+
+tbl_test <- table(actual_test$price.binned, pred_test$predict)
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.8947368
+
+# Train & Cross-validate a RF
+my_rf <- h2o.randomForest(x = myX,
+                          y = "price.binned",
+                          training_frame = train,
+                          model_id = "my_rf",
+                          ntrees = 50,
+                          nfolds = nfolds,
+                          keep_cross_validation_predictions = TRUE, # need for ensemble
+                          seed = 42)
+
+
+# Makes prediction
+pred_train <- as.data.frame(h2o.predict(my_rf, newdata = hex_split[[1]]))
+actual_train <- as.data.frame(hex_split[[1]])
+
+pred_test <- as.data.frame(h2o.predict(my_rf, newdata = hex_split[[2]]))
+actual_test <- as.data.frame(hex_split[[2]])
+
+# Calculates accuracies
+tbl_train <- table(actual_train$price.binned, pred_train$predict)
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 1
+
+tbl_test <- table(actual_test$price.binned, pred_test$predict)
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.9473684
+
+# Train & Cross-validate a GBM
+my_gbm <- h2o.gbm(x = myX,
+                  y = "price.binned",
+                  training_frame = train,
+                  model_id = "my_gbm",
+                  nfolds = nfolds,
+                  keep_cross_validation_predictions = TRUE, # need for ensemble
+                  seed = 42)
+
+# Makes prediction
+pred_train <- as.data.frame(h2o.predict(my_gbm, newdata = hex_split[[1]]))
+actual_train <- as.data.frame(hex_split[[1]])
+
+pred_test <- as.data.frame(h2o.predict(my_gbm, newdata = hex_split[[2]]))
+actual_test <- as.data.frame(hex_split[[2]])
+
+# Calculates accuracies
+tbl_train <- table(actual_train$price.binned, pred_train$predict)
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 1
+
+tbl_test <- table(actual_test$price.binned, pred_test$predict)
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.9473684
+
+# XGBoost (default hyperparameters)
+
+my_xgboost <- h2o.xgboost(x = myX, y = "price",
+                          training_frame = train,
+                          model_id = "my_xgboost",
+                          nfolds = nfolds,
+                          keep_cross_validation_predictions = TRUE, # need for ensemble
+                          seed = 42)
+
+
+# Makes prediction
+pred_train <- as.data.frame(h2o.predict(my_xgboost, newdata = hex_split[[1]]))
+actual_train <- as.data.frame(hex_split[[1]])
+
+pred_test <- as.data.frame(h2o.predict(my_xgboost, newdata = hex_split[[2]]))
+actual_test <- as.data.frame(hex_split[[2]])
+
+# Calculates accuracies
+tbl_train <- table(actual_train$price.binned, pred_train$predict)
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 1
+
+tbl_test <- table(actual_test$price.binned, pred_test$predict)
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.9473684
+
+
+# Stacked Ensemble with GLM, RF, GBM and XGBoost
+
+my_ensemble <- h2o.stackedEnsemble(x = myX,
+                                    y = "price.binned",
                                     training_frame = train,
                                     model_id = "my_ensemble",
                                     seed = 42,
@@ -391,18 +501,19 @@ my_ensemble <- h2o.stackedEnsemble(x = myX,
 
 
 # Makes prediction
-pred_train <- as.data.frame(h2o.predict(my_ensemble, newdata = train))
-actual_train <- as.data.frame(train)
+pred_train <- as.data.frame(h2o.predict(my_ensemble, newdata = hex_split[[1]]))
+actual_train <- as.data.frame(hex_split[[1]])
 
-pred_test <- as.data.frame(h2o.predict(my_ensemble, newdata = test))
-actual_test <- as.data.frame(test)
+pred_test <- as.data.frame(h2o.predict(my_ensemble, newdata = hex_split[[2]]))
+actual_test <- as.data.frame(hex_split[[2]])
 
 # Calculates accuracies
-tbl_train <- table(actual_train$price, pred_train$predict)
-(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0.08641975
+tbl_train <- table(actual_train$price.binned, pred_train$predict)
+(accuracy_train <- sum(diag(tbl_train)) / sum(tbl_train)) # 0
 
-tbl_test <- table(actual_test$price, pred_test$predict)
-(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0.2820513
+tbl_test <- table(actual_test$price.binned, pred_test$predict)
+(accuracy_test <- sum(diag(tbl_test)) / sum(tbl_test)) # 0
+
 
 
 
