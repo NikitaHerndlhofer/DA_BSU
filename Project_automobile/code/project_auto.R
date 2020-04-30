@@ -67,7 +67,7 @@ auto$price.binned <- cut(auto$price, bins,
                               include_lowest = True) 
 
 (y <- as.data.frame(lapply(auto, function(x) sum(is.na(x)))))
-auto<-auto[complete.cases(auto$price.binned),]
+auto <- auto[complete.cases(auto$price.binned),]
 
 View(auto)
 
