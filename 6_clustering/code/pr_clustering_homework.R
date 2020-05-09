@@ -7,9 +7,9 @@ n <- 25
 X1 <- cbind(rnorm(school_result$reading.4),rnorm(school_result$arithmetic.4), rnorm(school_result$reading.6), rnorm(school_result$arithmetic.6))
 X2 <- cbind(pnorm(school_result$reading.4),pnorm(school_result$arithmetic.4), pnorm(school_result$reading.6), pnorm(school_result$arithmetic.6))
 Test1 <- PCAasymp(X1, k = 4)
-ggscreeplot(Test1) # со случайными отклонениями
+ggscreeplot(Test1) # 
 Test2 <- PCAasymp(X2, k = 4)
-ggscreeplot(Test2) # распределение
+ggscreeplot(Test2) # 
 
 School <- PCAasymp(school_result, k = 4)
 ggscreeplot(School)
