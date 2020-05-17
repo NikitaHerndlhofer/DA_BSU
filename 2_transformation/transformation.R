@@ -1,14 +1,14 @@
 # Book: R for Data Science https://r4ds.had.co.nz
 # Chapter 5 
 
-# install.packages('nycflights13')
+setwd("D:/R projects/ds-courses/BSU/transformation")
+
+install.packages('nycflights13')
 library(nycflights13)
 library(dplyr)
 
 ?flights
 flights
-
-# str(), dim(), View(), summary()
 
 head(flights,3)
 tail(flights)
@@ -16,42 +16,6 @@ tail(flights)
 # Type of variables
 class(flights)
 class(flights$day)
-
-
-# Main types of vectors
-# Logical, integer, double (double precision floating point numbers), 
-# numeric (integer and double), characters, factors
-
-
-# Functions to check variable type or convert between different types
-# Check: is.numeric(), is.logical(), is.character(), is.factor() ...
-# Convert: as.logical(), as.integer(), as.double(), as.character(), as.factor() ...
-
-
-# Create vector
-# https://stackoverflow.com/questions/1741820/what-are-the-differences-between-and-assignment-operators-in-r
-x <-  c(1, 2, 3) # x = c(1, 2, 3)
-
-class(x)
-
-is.numeric(x)
-
-is.integer(x)
-
-x <- as.factor(x)
-class(x)
-
-
-# Create dataframe
-squares <- data.frame(
-  size = c('small', 'big', 'medium'),
-  edge = c('dotted', 'striped', 'normal'),
-  color = c('green', 'yellow', 'green')
-)
-
-View(squares)
-
-str(squares)
 
 # What are types of variables in flights?
 
@@ -105,10 +69,11 @@ arrange(flights, desc(dep_delay))
 
 # missing values are always sorted at the end
 
-tail(arrange(flights, desc(dep_delay)),3)
+
 
 # 3. Select columns with select()---------------------------------------------
 # Actual for datasets with many columns to narrowing in on the variables.
+# we'll use "flights" and "economics" to get the general idea.
 
 select(flights, year, month, day)
 
@@ -132,7 +97,7 @@ mutate(flights_sml,
        speed = distance / air_time * 60
 )
 
-# Useful creation function +, -, *, /, ^, %/% (integer division) and %% (remainder)
+# Useful creation function +, -, *, |, ^, %/% (integer division) and %% (remainder)
 
 # 5. Grouped summaries with summarise()----------------------------------------
 by_day <- group_by(flights, year, month, day)

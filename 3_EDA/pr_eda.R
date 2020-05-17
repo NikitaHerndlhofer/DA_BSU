@@ -39,5 +39,3 @@
 
 
 # Exersice 10. Make eda for mpg df
-
-

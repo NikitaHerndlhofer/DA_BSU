@@ -233,7 +233,3 @@ ggplot(faithful, aes(eruptions, waiting)) +
 
 
 
-
-
-
-

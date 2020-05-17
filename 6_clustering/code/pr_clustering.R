@@ -1,3 +1,4 @@
+  
 # 1) Make a Scree Plot for school_result dataset with ggplot()
 
 

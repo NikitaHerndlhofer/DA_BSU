@@ -28,4 +28,3 @@
 
 # 1) Build RF and GBM models (at least default) and assess their performances 
 # 2) Compare obtained results with ones in table_boston_results.pptx
-
